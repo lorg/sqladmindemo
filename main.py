@@ -1,27 +1,46 @@
-from sqlalchemy import Column, Integer, String, create_engine, select
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import Integer, String, select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from fastapi import FastAPI
 from sqladmin import Admin, ModelView
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 # Create FastAPI app
-app = FastAPI(title="SQLAdmin Demo")
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    # Create tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    # Add test data
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.email == "test@example.com"))
+        user = result.scalar_one_or_none()
+        if not user:
+            user = User(name="Test User", email="test@example.com")
+            session.add(user)
+            await session.commit()
+    yield
+
+app = FastAPI(title="SQLAdmin Demo", lifespan=lifespan)
 
 # Database setup
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
-async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 # Create Base class for SQLAlchemy models
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 # Define User model
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    email = Column(String, nullable=False, index=True, unique=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False, index=True, unique=True)
 
 # Define User Admin View
 class UserAdmin(ModelView, model=User):

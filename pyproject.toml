@@ -16,7 +16,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "mypy>=1.8.0",
-    "types-sqlalchemy>=1.4.0",
 ]
 test = [
     "pytest>=8.0.0",

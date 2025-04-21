@@ -22,5 +22,14 @@
             "allowAllOptions": true
         }
     },
-    "preferredPackageManager": "uv"
+    "preferredPackageManager": "uv",
+    "package_manager": "uv",
+    "commandRules": {
+        "package_management": {
+            "install": "uv add",
+            "uninstall": "uv remove",
+            "add": "uv add",
+            "remove": "uv remove"
+        }
+    }
 } 
