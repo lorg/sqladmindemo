@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, select
+from sqlalchemy import Integer, String, select, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from fastapi import FastAPI
@@ -41,6 +41,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False, index=True, unique=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
 # Define User Admin View
 class UserAdmin(ModelView, model=User):
