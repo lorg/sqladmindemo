@@ -1,0 +1,26 @@
+{
+    "modelRules": {
+        "sqlalchemy": {
+            "enforceTyping": true,
+            "requiredImports": [
+                "from sqlalchemy.orm import Mapped, mapped_column",
+                "from sqlalchemy.orm import DeclarativeBase"
+            ],
+            "baseClass": "DeclarativeBase",
+            "columnPattern": "Mapped[type] = mapped_column(ColumnType, ...)"
+        }
+    },
+    "allowCommands": {
+        "pytest": {
+            "allowAllParams": true,
+            "allowAllFlags": true,
+            "allowAllOptions": true
+        },
+        "uv": {
+            "allowAllParams": true,
+            "allowAllFlags": true,
+            "allowAllOptions": true
+        }
+    },
+    "preferredPackageManager": "uv"
+} 
