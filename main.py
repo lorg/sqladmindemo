@@ -69,24 +69,6 @@ admin.add_view(UserAdmin)
 async def root():
     return {"message": "Welcome to SQLAdmin Demo"}
 
-# Create tables
-@app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-# Add test data
-@app.on_event("startup")
-async def create_test_data():
-    async with async_session() as session:
-        # Check if test user exists
-        result = await session.execute(select(User).where(User.email == "test@example.com"))
-        user = result.scalar_one_or_none()
-        
-        if not user:
-            user = User(name="Test User", email="test@example.com")
-            session.add(user)
-            await session.commit()
 
 if __name__ == "__main__":
     import uvicorn
