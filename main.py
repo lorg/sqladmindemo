@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from fastapi import FastAPI
 from sqladmin import Admin, ModelView
+from sqladmin.filters import BooleanFilter, AllUniqueStringValuesFilter
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -45,7 +46,8 @@ class User(Base):
 
 # Define User Admin View
 class UserAdmin(ModelView, model=User):
-    column_list = ["id", "name", "email"]
+    column_list = ["id", "name", "email", "is_admin"]
+    filter_list = [BooleanFilter(User.is_admin), AllUniqueStringValuesFilter(User.name)]
     can_create = True
     can_edit = True
     can_delete = True

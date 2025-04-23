@@ -7,14 +7,15 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.12",
     "sqlalchemy>=2.0.40",
-    "sqladmin>=0.17.0",
     "uvicorn[standard]>=0.27.0",
     "aiosqlite>=0.19.0",
     "greenlet>=3.0.0",
+    "sqladmin",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "ipython>=9.1.0",
     "mypy>=1.8.0",
 ]
 test = [
@@ -27,3 +28,6 @@ test = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.uv.sources]
+sqladmin = { path = "../sqladmin", editable = true }
