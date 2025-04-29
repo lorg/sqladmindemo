@@ -1,11 +1,11 @@
-from sqlalchemy import Integer, String, select, Boolean
+from sqlalchemy import Integer, String, select, Boolean, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from fastapi import FastAPI
 from sqladmin import Admin, ModelView
-from sqladmin.filters import BooleanFilter, AllUniqueStringValuesFilter
+from sqladmin.filters import BooleanFilter, AllUniqueStringValuesFilter, ForeignKeyFilter
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 # Create FastAPI app
 @asynccontextmanager
@@ -43,11 +43,25 @@ class User(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False, index=True, unique=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    site_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("sites.id"), nullable=True, default=None)
+    site: Mapped[Optional["Site"]] = relationship(back_populates="users")
+
+class Site(Base):
+    __tablename__ = "sites"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    users: Mapped[list["User"]] = relationship(back_populates="site")
+
 
 # Define User Admin View
 class UserAdmin(ModelView, model=User):
     column_list = ["id", "name", "email", "is_admin"]
-    filter_list = [BooleanFilter(User.is_admin), AllUniqueStringValuesFilter(User.name)]
+    filter_list = [
+        BooleanFilter(User.is_admin), 
+        AllUniqueStringValuesFilter(User.name),
+        ForeignKeyFilter(User.site_id, Site.name, title="Site")
+    ]
     can_create = True
     can_edit = True
     can_delete = True
@@ -61,11 +75,19 @@ class UserAdmin(ModelView, model=User):
         # Override to use our session
         return await self.session.execute(select(self.model))
 
+# Define Site Admin View
+class SiteAdmin(ModelView, model=Site):
+    column_list = ["id", "name", "users"]
+    can_create = True
+    can_edit = True
+    can_delete = True
+
 # Setup SQLAdmin
 admin = Admin(app, engine)
 
 # Add views
 admin.add_view(UserAdmin)
+admin.add_view(SiteAdmin)
 
 @app.get("/")
 async def root():
